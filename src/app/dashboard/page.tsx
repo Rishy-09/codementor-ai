@@ -20,6 +20,8 @@ import {
   ChevronRight,
   Star,
   Award,
+  Menu,
+  X,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 
@@ -39,6 +41,9 @@ export default function Dashboard() {
   const [activeNav, setActiveNav] = useState("roadmap")
   const userName = "Alex"
   const streakDays = 7
+
+  // NEW: Track mobile menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // NEW: Track how many modules are done (default 2 for demo)
   const [completedCount, setCompletedCount] = useState(2);
@@ -180,17 +185,38 @@ print("Let's begin!")
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-sidebar-border bg-sidebar">
+    <div className="flex min-h-screen bg-background relative">
+      
+      {/* 1. NEW: Mobile Hamburger Button */}
+      <button 
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="fixed top-4 left-4 z-50 rounded-lg bg-gray-800 p-2 text-white shadow-lg md:hidden border border-gray-700 hover:bg-gray-700"
+      >
+        {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </button>
+
+      {/* 2. NEW: Overlay (Darkens background when menu is open) */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)} // Close when clicking outside
+        />
+      )}
+
+      {/* 3. UPDATED: Sidebar with Slide Logic */}
+      <aside 
+        className={`fixed left-0 top-0 z-40 h-screen w-64 border-r border-sidebar-border bg-sidebar transition-transform duration-300 ease-in-out 
+          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} 
+          md:translate-x-0`}
+      >
         <div className="flex h-full flex-col">
-          {/* Logo */}
-          <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
+          {/* Logo - Added padding-left for mobile so button doesn't cover it */}
+          <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6 pl-16 md:pl-6">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg shadow-purple-500/50">
               <Code className="h-5 w-5 text-white" />
             </div>
             <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text font-mono text-lg font-bold text-transparent">
-              CodeMentor AI
+              CodeMentor
             </span>
           </div>
 
@@ -200,25 +226,25 @@ print("Let's begin!")
               icon={BookOpen}
               label="My Roadmap"
               active={activeNav === "roadmap"}
-              onClick={() => setActiveNav("roadmap")}
+              onClick={() => { setActiveNav("roadmap"); setIsMobileMenuOpen(false); }}
             />
             <NavItem
               icon={Code}
               label="Coding Sandbox"
               active={activeNav === "sandbox"}
-              onClick={() => setActiveNav("sandbox")}
+              onClick={() => { setActiveNav("sandbox"); setIsMobileMenuOpen(false); }}
             />
             <NavItem
               icon={Trophy}
               label="Boss Battles"
               active={activeNav === "battles"}
-              onClick={() => setActiveNav("battles")}
+              onClick={() => { setActiveNav("battles"); setIsMobileMenuOpen(false); }}
             />
             <NavItem
               icon={User}
               label="Portfolio"
               active={activeNav === "portfolio"}
-              onClick={() => setActiveNav("portfolio")}
+              onClick={() => { setActiveNav("portfolio"); setIsMobileMenuOpen(false); }}
             />
           </nav>
 
@@ -238,24 +264,27 @@ print("Let's begin!")
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="ml-64 flex-1">
-        <div className="fixed inset-0 ml-64 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-purple-500/20 blur-[120px] animate-pulse" />
-          <div className="absolute top-1/2 -left-40 h-80 w-80 rounded-full bg-pink-500/20 blur-[120px] animate-pulse animation-delay-2000" />
-          <div className="absolute bottom-20 right-1/4 h-60 w-60 rounded-full bg-orange-500/20 blur-[100px] animate-pulse animation-delay-4000" />
+      {/* Main Content (Kept the mobile margin fix) */}
+      <main className="ml-0 md:ml-64 flex-1">
+        {/* ... Rest of your main content remains exactly the same ... */}
+        <div className="fixed inset-0 ml-0 md:ml-64 overflow-hidden pointer-events-none">
+          {/* ... Background blobs ... */}
+           <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-purple-500/20 blur-[120px] animate-pulse" />
+           <div className="absolute top-1/2 -left-40 h-80 w-80 rounded-full bg-pink-500/20 blur-[120px] animate-pulse animation-delay-2000" />
+           <div className="absolute bottom-20 right-1/4 h-60 w-60 rounded-full bg-orange-500/20 blur-[100px] animate-pulse animation-delay-4000" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl p-6 lg:p-8">
-          {/* Header Section */}
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
+        <div className="relative mx-auto max-w-7xl p-6 lg:p-8 pt-16 md:pt-6"> {/* Added pt-16 for mobile header spacing */}
+           {/* Header Section */}
+           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            {/* ... Your existing Header code ... */}
+             <div>
               <h1 className="mb-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-balance text-4xl font-bold tracking-tight text-transparent">
                 Welcome back, {userName}!
               </h1>
               <p className="text-muted-foreground">Continue your coding journey and level up your skills</p>
             </div>
-            <Card className="group relative w-fit overflow-hidden border-0 transition-all hover:scale-105">
+             <Card className="group relative w-fit overflow-hidden border-0 transition-all hover:scale-105">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-red-500 to-yellow-500 opacity-20 blur-2xl transition-opacity group-hover:opacity-30" />
               <CardContent className="relative flex items-center gap-3 rounded-xl border border-orange-500/50 bg-gradient-to-br from-card/90 to-card/50 p-4 shadow-2xl shadow-orange-500/20 backdrop-blur-xl">
                 <div className="text-4xl animate-pulse">🔥</div>
@@ -267,16 +296,21 @@ print("Let's begin!")
                 </div>
               </CardContent>
             </Card>
-          </div>
-
-          <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat, index) => (
+           </div>
+           
+           {/* ... REST OF YOUR DASHBOARD CONTENT (Stats, Learning Path, etc.) ... */}
+           {/* Just paste the rest of your original content here */}
+           
+           <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+             {/* ... stats map ... */}
+             {stats.map((stat, index) => (
               <Card
                 key={stat.label}
                 className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur transition-all hover:border-primary/50 hover:shadow-2xl"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div
+                {/* ... stat content ... */}
+                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 transition-all duration-300 group-hover:opacity-10`}
                 />
                 <div
@@ -301,13 +335,13 @@ print("Let's begin!")
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+             ))}
+           </div>
 
-          <div className="mb-8 grid gap-6 lg:grid-cols-3">
-            {/* Learning Path - Takes 2 columns */}
-            <div className="lg:col-span-2">
-              <div className="mb-4 flex items-center justify-between">
+           <div className="mb-8 grid gap-6 lg:grid-cols-3">
+             <div className="lg:col-span-2">
+               {/* ... Learning path card ... */}
+                <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <h2 className="text-2xl font-bold text-foreground">Your Learning Path</h2>
                   <div className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1 text-xs font-bold text-white shadow-lg shadow-purple-500/50">
@@ -322,10 +356,7 @@ print("Let's begin!")
               <Card className="border-border/50 bg-gradient-to-br from-card/80 to-card/50 backdrop-blur shadow-2xl">
                 <CardContent className="p-6">
                   <div className="relative">
-                    {/* Path Line with gradient */}
                     <div className="absolute left-6 top-12 bottom-12 w-0.5 bg-gradient-to-b from-purple-500 via-pink-500 to-muted" />
-
-                    {/* Learning Nodes */}
                     <div className="space-y-4">
                       {learningPath.map((module, index) => (
                         <LearningNode key={module.id} {...module} isLast={index === learningPath.length - 1} />
@@ -334,11 +365,12 @@ print("Let's begin!")
                   </div>
                 </CardContent>
               </Card>
-            </div>
-
-            {/* Right Column - Activity & Achievements */}
-            <div className="space-y-6">
-              <div>
+             </div>
+             
+             {/* Right Column */}
+             <div className="space-y-6">
+               {/* ... Weekly Activity ... */}
+                <div>
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-lg font-bold text-foreground">Weekly Activity</h3>
                   <div className="flex items-center gap-1 text-xs font-medium text-green-500">
@@ -392,7 +424,8 @@ print("Let's begin!")
                 </Card>
               </div>
 
-              <div>
+               {/* ... Achievements ... */}
+               <div>
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-lg font-bold text-foreground">Recent Achievements</h3>
                   <Award className="h-4 w-4 text-yellow-500" />
@@ -427,10 +460,11 @@ print("Let's begin!")
                   </CardContent>
                 </Card>
               </div>
-            </div>
-          </div>
-
-          <Card className="group relative overflow-hidden border-0 transition-all hover:shadow-2xl">
+             </div>
+           </div>
+           
+           {/* ... Quote Card ... */}
+            <Card className="group relative overflow-hidden border-0 transition-all hover:shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-orange-500/20 blur-3xl transition-opacity group-hover:opacity-100" />
             <CardContent className="relative rounded-xl border border-purple-500/30 bg-gradient-to-br from-card/90 to-card/60 p-6 backdrop-blur-xl shadow-xl">
               <div className="flex items-start gap-4">
@@ -451,7 +485,6 @@ print("Let's begin!")
     </div>
   )
 }
-
 function NavItem({
   icon: Icon,
   label,
