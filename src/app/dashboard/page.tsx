@@ -21,7 +21,7 @@ import {
   Star,
   Award,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 type LearningStatus = "completed" | "in-progress" | "locked"
 
@@ -32,6 +32,7 @@ type LearningModule = {
   status: LearningStatus
   xp: number
   progress?: number
+  starterCode?: string  // New field for module-specific code
 }
 
 export default function Dashboard() {
@@ -39,21 +40,47 @@ export default function Dashboard() {
   const userName = "Alex"
   const streakDays = 7
 
-  const learningPath: LearningModule[] = [
-    { id: 1, title: "Python Basics", status: "completed", description: "Variables, data types, syntax", xp: 500 },
-    { id: 2, title: "Loops & Conditionals", status: "completed", description: "Control flow fundamentals", xp: 450 },
-    {
-      id: 3,
-      title: "Functions & Methods",
-      status: "in-progress",
-      description: "Building reusable code",
-      xp: 300,
-      progress: 65,
-    },
-    { id: 4, title: "Data Structures", status: "locked", description: "Lists, dicts, sets, tuples", xp: 600 },
-    { id: 5, title: "Object-Oriented Programming", status: "locked", description: "Classes and inheritance", xp: 750 },
-    { id: 6, title: "API Integration", status: "locked", description: "Working with REST APIs", xp: 800 },
-  ]
+  // NEW: Track how many modules are done (default 2 for demo)
+  const [completedCount, setCompletedCount] = useState(2);
+
+  const [learningPath, setLearningPath] = useState<LearningModule[]>([]);
+
+  useEffect(() => {
+    // 1. Check for saved progress count
+    const savedCount = localStorage.getItem('modulesCompleted');
+    let currentCount = 2; // Default
+    if (savedCount) {
+      currentCount = parseInt(savedCount);
+      setCompletedCount(currentCount);
+    }
+
+    const saved = localStorage.getItem('userRoadmap');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Map AI modules to LearningModule format
+      const mapped: LearningModule[] = parsed.modules.map((mod: any, index: number) => ({
+        id: index + 1,
+        title: mod.title,
+        description: mod.description,
+        // DYNAMIC STATUS: Uses 'currentCount' instead of hardcoded numbers
+        status: index < currentCount ? "completed" : index === currentCount ? "in-progress" : "locked",
+        xp: 300 + index * 150,
+        progress: index === currentCount ? 10 : undefined, // Reset progress to 10% for the new active module
+        starterCode: getStarterCode(mod.title),
+      }));
+      setLearningPath(mapped);
+    } else {
+      // Fallback static path
+      setLearningPath([
+        { id: 1, title: "Complete the Quiz", status: "completed", description: "Take the personalization quiz", xp: 100, progress: 0, starterCode: "" },
+        { id: 2, title: "Python Basics", status: currentCount > 1 ? "completed" : "in-progress", description: "Variables & Loops", xp: 200, starterCode: "" },
+        { id: 3, title: "Module 3 Placeholder", status: currentCount > 2 ? "completed" : currentCount === 2 ? "in-progress" : "locked", description: "Coming soon", xp: 300, starterCode: "" },
+        { id: 4, title: "Module 4 Placeholder", status: "locked", description: "Coming soon", xp: 400, starterCode: "" },
+        { id: 5, title: "Module 5 Placeholder", status: "locked", description: "Coming soon", xp: 500, starterCode: "" },
+        { id: 6, title: "Module 6 Placeholder", status: "locked", description: "Coming soon", xp: 600, starterCode: "" },
+      ]);
+    }
+  }, []);
 
   const weeklyActivity = [
     { day: "Mon", hours: 2.5 },
@@ -108,6 +135,49 @@ export default function Dashboard() {
       glowColor: "shadow-blue-500/20",
     },
   ]
+
+  const getStarterCode = (title: string) => {
+    if (title.toLowerCase().includes("calculator")) {
+      return `# Build a Simple Calculator in Python
+
+def add(x, y):
+    return x + y
+
+def subtract(x, y):
+    return x - y
+
+# Add more functions: multiply, divide
+# Then create a main loop to ask user for operation
+
+print("Calculator ready!")
+`;
+    }
+    if (title.toLowerCase().includes("to-do list")) {
+      return `# Build a To-Do List App
+
+tasks = []
+
+def add_task(task):
+    tasks.append({"task": task, "done": False})
+    print(f"Added: {task}")
+
+def list_tasks():
+    for i, t in enumerate(tasks):
+        status = "✓" if t["done"] else " "
+        print(f"{i+1}. [{status}] {t['task']}")
+
+# Test it
+add_task("Learn Python")
+list_tasks()
+`;
+    }
+    // Default fallback for other modules
+    return `# Project: ${title}
+
+# Starter code will appear here based on your module
+print("Let's begin!")
+`;
+  };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -416,6 +486,7 @@ function LearningNode({
   xp,
   progress,
   isLast,
+  starterCode,
 }: {
   title: string
   description: string
@@ -423,6 +494,7 @@ function LearningNode({
   xp: number
   progress?: number
   isLast: boolean
+  starterCode?: string  // New prop for starter code
 }) {
   const getIcon = () => {
     if (status === "completed") return <CheckCircle2 className="h-6 w-6 text-green-400" />
@@ -450,6 +522,13 @@ function LearningNode({
       return "bg-purple-500/20 border-purple-500 shadow-xl shadow-purple-500/40 scale-110 animate-pulse"
     return "bg-secondary border-border scale-90"
   }
+
+  const handleContinue = () => {
+    if (starterCode) {
+      localStorage.setItem('currentModuleCode', starterCode);
+      window.location.href = '/sandbox';
+    }
+  };
 
   return (
     <div className="group relative flex items-center gap-4">
@@ -497,6 +576,7 @@ function LearningNode({
               <Button
                 size="sm"
                 className="group/btn shrink-0 gap-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50 transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-xl hover:shadow-purple-500/50"
+                onClick={handleContinue}
               >
                 Continue
                 <ChevronRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />

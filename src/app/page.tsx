@@ -8,6 +8,10 @@ export default function Home() {
       <Link href="/dashboard" className="rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold hover:bg-blue-700">
         Enter Dashboard (Demo Mode)
       </Link>
+      <br></br>
+      <Link href="/quiz" className="rounded-lg bg-purple-600 px-8 py-4 text-lg font-semibold hover:bg-purple-700">
+      Start Quiz → Get Personalized Path
+      </Link>
     </div>
   );
 }
